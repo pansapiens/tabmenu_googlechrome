@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script type="text/javascript">
+if (typeof localStorage.code != "string") {
+  localStorage.code =  "77";
+  localStorage.alt = "false";
+  localStorage.shift = "false";
+  localStorage.notice = "true";
+}
+if (typeof localStorage.counter != "string")
+  localStorage.counter = "none";
+
+var text = 0;
+function countTabs() {
+  setTimeout(realCount, 100);
+}
+function realCount() {
+  var c = localStorage.counter, add = 0;
+  if (c == "none") {
+    if (!text) return;
+    text = 0;
+    if (chrome.tabs.onAttached.hasListener(countTabs)) {
+      chrome.tabs.onAttached.removeListener(countTabs);
+      chrome.tabs.onCreated.removeListener(countTabs);
+      chrome.tabs.onDetached.removeListener(countTabs);
+      chrome.tabs.onRemoved.removeListener(countTabs);
+    }
+  }
+  else if (!text) {
+    text = 1;
+    add = 1;
+  }
+  chrome.windows.getAll({ populate: true }, function(windows) {
+    windows.forEach(function(window) {
+      var count = window.tabs.length;
+      window.tabs.forEach(function(tab) {
+        chrome.browserAction.setBadgeText({ tabId: tab.id, text: c == "badge" ? "" + count : "" });
+        chrome.browserAction.setTitle({ tabId: tab.id, title: c == "title" ? count + (count - 1 ? " tabs" : " tab") : "" });
+      });
+    });
+  });
+  if (add && !chrome.tabs.onAttached.hasListener(countTabs)) {
+    chrome.tabs.onAttached.addListener(countTabs);
+    chrome.tabs.onCreated.addListener(countTabs);
+    chrome.tabs.onDetached.addListener(countTabs);
+    chrome.tabs.onRemoved.addListener(countTabs);
+  }
+}
+realCount();
+
+chrome.extension.onRequest.addListener(function(request, sender, sendResponse) {
+  if (request.code != localStorage.code || request.alt != localStorage.alt || request.shift != localStorage.shift)
+  	return;
+  chrome.tabs.getAllInWindow(null, function(tabs) {
+    for (var i = 0, tab; tab = tabs[i]; i++) {
+      if (tab.url && /^chrome.*popup.html.tab([&]options)?$/.test(tab.url)) {
+        chrome.tabs.update(tab.id, { selected: true });
+        return;
+      }
+    }
+  	chrome.tabs.create({ url: "popup.html?tab" });
+  });
+});
+</script>
+</head>
+<body></body>
+</html>

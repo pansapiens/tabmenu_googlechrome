@@ -1,0 +1,28 @@
+{
+  "manifest_version": 2,
+  "update_url": "http://clients2.google.com/service/update2/crx",
+  "name": "Tab Menu",
+  "description": "Select, close, rearrange, and search your tabs in a vertical menu! Extras: merge windows, keyboard shortcut, and tab counter!",
+  "version": "1.8.5",
+  "icons": {
+    "16": "35.png",
+    "32": "35.png",
+    "48": "48.png",
+    "128": "48.png"
+  },
+  "browser_action": {
+    "default_icon": "35.png",
+    "popup": "popup.html"
+  },
+  "options_page": "popup.html?tab&options",
+  "background": { "page": "background.html", 
+                  "persistent": false },
+  "content_scripts": [
+    {
+      "run_at": "document_start",
+      "matches": ["http://*/*", "https://*/*", "ftp://*/*"],
+      "js": ["shortcut.js"]
+    }
+  ],
+  "permissions": ["tabs"]
+}
